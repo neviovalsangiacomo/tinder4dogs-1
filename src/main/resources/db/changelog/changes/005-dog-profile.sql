@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset tinder4dogs:005-add-dog-profile-columns
---comment: profile attributes on the dog itself, all nullable so existing rows keep loading and a new profile may start with the four original fields only. owner_id is made mandatory by the backfill and requirement changesets below.
+--comment: profile attributes on the dog itself, all nullable so existing rows keep loading and a new profile may start with the four original fields only. owner_id stays nullable until the owner-aware write path ships, so the current create flow keeps working.
 ALTER TABLE dog
     ADD COLUMN owner_id      VARCHAR(100),
     ADD COLUMN size          VARCHAR(10),
@@ -46,11 +46,6 @@ CREATE TABLE dog_photo (
 --comment: every existing dog gets a distinct synthetic owner derived from its own id, including the corrupt legacy row (Nonna, age -3), which is assigned like any other and whose age is not touched.
 UPDATE dog SET owner_id = 'legacy-' || id;
 --rollback UPDATE dog SET owner_id = NULL;
-
---changeset tinder4dogs:005-require-dog-owner-id
---comment: no stored profile may be without an owner from here on; the backfill above has filled every row
-ALTER TABLE dog ALTER COLUMN owner_id SET NOT NULL;
---rollback ALTER TABLE dog ALTER COLUMN owner_id DROP NOT NULL;
 
 --changeset tinder4dogs:005-active-owner-unique-index
 --comment: one active profile per owner. The index spans only rows that are not removed, so removing a profile frees the owner for a replacement while the removed row keeps its data.
