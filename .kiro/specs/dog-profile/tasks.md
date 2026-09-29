@@ -2,7 +2,7 @@
 
 ## 1. Foundation
 
-- [ ] 1.1 Add and register the profile schema migration.
+- [x] 1.1 Add and register the profile schema migration.
   - Add nullable profile scalar fields, temperament and ordered photo tables, deterministic owner backfill for every existing dog, including the legacy invalid-age row, then enforce non-null ownership and active-owner uniqueness.
   - Preserve the legacy age value and define rollback in reverse dependency order.
   - Verify child-table keys, cascade behavior, photo positions, and string enum compatibility are represented in the migration.
@@ -200,3 +200,10 @@
   - _Depends: 3.5, 3.6, 4.2, 5.2, 5.3_
   - _Boundary: Final validation_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 9.1, 9.2, 9.3, 9.4, 9.5_
+
+## Implementation Notes
+
+- Task 1.1 (schema): `dog.removed_at` is `TIMESTAMP WITH TIME ZONE`; task 1.2 must map `removedAt` as `Instant?` (Hibernate 6/7 maps Instant to timestamptz) or `ddl-auto: validate` will fail startup.
+- Task 1.1 (schema): `position` is unreserved in PostgreSQL 18 (probed in DDL and DML); task 1.3 can map the photo column as a plain `@Column(name = "position")` without quoting. `dog_photo.reference` is `TEXT` with no length limit.
+- Task 1.1 (schema): the unique active-owner index is `uq_dog_owner_active ON dog (owner_id) WHERE removed_at IS NULL`; task 2.6 must map its integrity violation to the same generic duplicate-owner failure as the service pre-check.
+- A leftover `postgres:13` container (`tinder4dogs-legacy-db-1`) squats host port 5432; task 5.1 will need that port free to start the project database.
