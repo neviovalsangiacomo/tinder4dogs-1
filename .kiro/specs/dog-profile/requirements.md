@@ -72,6 +72,9 @@ they bind the spec:
 7. **Existing dogs are backfilled with synthetic owners.** Every dog already in
    the database receives a distinct generated owner identifier, so ownership is
    uniform and the one-dog-per-owner rule has no grandfathered exceptions.
+8. **Owner identifier format — opaque string.** An owner identifier is trimmed,
+   non-blank, and between 1 and 100 characters inclusive. The service does not
+   interpret its contents or require UUID formatting.
 
 ### Constraints
 
@@ -243,8 +246,9 @@ knows whose dog it is and I cannot accidentally create duplicates.
 
 1. The Dog Profile Service shall record an owner identifier for every profile it
    creates.
-2. If a create request omits the owner identifier or supplies one that is empty
-   or malformed, then the Dog Profile Service shall reject the request.
+2. If a create request omits the owner identifier or supplies one that is
+   blank after trimming or longer than 100 characters, then the Dog Profile
+   Service shall reject the request.
 3. If a create request supplies an owner identifier that already has an active
    profile, then the Dog Profile Service shall reject the request without
    disclosing that the identifier is already in use.

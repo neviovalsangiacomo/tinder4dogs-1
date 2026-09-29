@@ -311,7 +311,8 @@ there is no restore operation in this scope.
 
 **Data mapping**
 
-- `ownerId: String`, persisted with a bounded non-null value.
+- `ownerId: String`, trimmed and persisted as a non-null value of 1–100
+  characters. The contents are opaque and are not interpreted as a UUID.
 - `size: Size?`, `energyLevel: EnergyLevel?`, `healthStatus: HealthStatus?`.
 - `temperaments: MutableSet<Temperament>`, eager, empty for legacy rows.
 - `photos: MutableList<DogPhoto>`, eager and ordered by `position`.
